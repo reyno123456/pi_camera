@@ -149,16 +149,16 @@ int main(int argc, char** argv)
 
 	unsigned int i;
 
-	for (i = 0; i < 24; i++){
+	for (i = 0; i < 8760; i++){
 		time(&tt);
 		t = localtime(&tt);
 		memset(filename, 0, sizeof(filename));
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 /* 		printf("filename = %s\n", filename); */
 
-		memcpy(commond_line, "raspivid -w 640 -h 480 -p 0  -t 3600000 -o video.h264", 
-			   strlen("raspivid -w 640 -h 480 -p 0  -t 3600000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -w 640 -h 480 -p 0  -t 3600000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -w 1280 -h 720 -p 0  -t 86400000 -o video.h264", 
+			   strlen("raspivid -w 1280 -h 720 -p 0  -t 86400000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -w 1280 -h 720 -p 0  -t 86400000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 
