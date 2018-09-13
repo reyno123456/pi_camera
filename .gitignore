@@ -1,0 +1,16 @@
+*.map
+*.lst
+*.dep
+*.htm
+*.SchDocPreview
+*Previews
+*.crf
+*.d
+*.o
+*.ao
+*.bin
+*.dis
+*.mif
+*.depend
+*.h264
+output/
