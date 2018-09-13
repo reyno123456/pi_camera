@@ -3,8 +3,98 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <dirent.h>
+#include <fcntl.h>
+
+#define KEEP_VIDEO_NUM						7*24
 
 char *get_current_dir_name(void);
+
+int readFileList(char *basePath)
+{
+	unsigned int i = 0;
+    DIR *dir;
+    struct dirent *ptr;
+    char base[1000];
+	char tmp[5] = {0};
+
+    if ((dir=opendir(basePath)) == NULL)
+    {
+        perror("Open dir error...");
+        exit(1);
+    }
+
+    while ((ptr=readdir(dir)) != NULL)
+    {
+        if(strcmp(ptr->d_name,".")==0 || strcmp(ptr->d_name,"..")==0)    ///current dir OR parrent dir
+            continue;
+        else if(ptr->d_type == 8){    		///file
+            printf("d_name:%s/%s\n",basePath,ptr->d_name);
+			printf("tmp = %s\n", ptr->d_name);
+		}
+        else if(ptr->d_type == 10)    ///link file
+            printf("d_name:%s/%s\n",basePath,ptr->d_name);
+        else if(ptr->d_type == 4)    ///dir
+        {
+            memset(base,'\0',sizeof(base));
+            strcpy(base,basePath);
+            strcat(base,"/");
+            strcat(base,ptr->d_name);
+            readFileList(base);
+        }
+    }
+    closedir(dir);
+    return 1;
+}
+
+void test_read_file_list(void)
+{
+	DIR *dir;
+	char basePath[1000];
+
+	///get the current absoulte path
+	memset(basePath,'\0',sizeof(basePath));
+	getcwd(basePath, 999);
+	printf("the current dir is : %s\n",basePath);
+
+	///get the file list
+/* 	memset(basePath,'\0',sizeof(basePath)); */
+/* 	strcpy(basePath,"./XL"); */
+	readFileList(basePath);
+	return;
+}
+
+unsigned int find_and_remove(void)
+{
+	int fd;
+	int ret;
+	unsigned int items;
+	unsigned int length;
+	unsigned int i;
+	char name[26] = {0};
+	char command_rm[29] = {0};
+
+	char buf[1024*1024] = {0};
+	
+	system("find *.h264 -> find.txt");
+
+	fd = open("find.txt", O_RDONLY);
+
+	ret = read(fd, buf, 1024*1024);
+
+
+	length = strlen(buf);
+	items = length / 26;
+
+	if (items > KEEP_VIDEO_NUM){
+		memcpy(command_rm, "rm ", 3);
+		memcpy(&command_rm[3], &buf[0], 25);
+/* 		printf("command_rm = %s\n", command_rm); */
+		system(command_rm);
+	}
+
+	return items;
+}
 
 int main(int argc, char** argv)
 {
@@ -30,6 +120,13 @@ int main(int argc, char** argv)
 
 /*	system("raspivid -w 320 -h 240 -p 0  -t 1000 -o video.h264"); */
 /*	sleep(2); */
+
+/*
+	test_read_file_list();
+	return 0;
+*/
+
+	unsigned int items;
 
 	struct tm *t;
 	time_t tt;
@@ -64,6 +161,11 @@ int main(int argc, char** argv)
 		memcpy(&commond_line[strlen("raspivid -w 640 -h 480 -p 0  -t 3600000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
+
+		do{
+			items = find_and_remove();
+			printf("items = %d\n", items);
+		}while (items > KEEP_VIDEO_NUM);
 /* 		sleep(10); */
 	}
 
