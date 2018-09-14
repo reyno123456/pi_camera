@@ -156,9 +156,9 @@ int main(int argc, char** argv)
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 /* 		printf("filename = %s\n", filename); */
 
-		memcpy(commond_line, "raspivid -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264", 
-			   strlen("raspivid -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264", 
+			   strlen("raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 
