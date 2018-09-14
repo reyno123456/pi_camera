@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#define KEEP_VIDEO_NUM						3*24
+#define KEEP_VIDEO_NUM						3*24*6
 
 char *get_current_dir_name(void);
 
@@ -96,6 +96,8 @@ unsigned int find_and_remove(void)
 	return items;
 }
 
+/* 86400000 一小时一个 */
+/* 14400000 10分钟一个 */
 int main(int argc, char** argv)
 {
 /*
@@ -149,16 +151,19 @@ int main(int argc, char** argv)
 
 	unsigned int i;
 
-	for (i = 0; i < 120; i++){
+/* 	1440 保留10天log */
+	for (i = 0; i < 1440; i++){
 		time(&tt);
 		t = localtime(&tt);
 		memset(filename, 0, sizeof(filename));
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 /* 		printf("filename = %s\n", filename); */
 
-		memcpy(commond_line, "raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264", 
-			   strlen("raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -op 0 -f -rot 180 -w 1280 -h 1024 -p 0  -t 86400000 -o ")], filename, strlen(filename));
+/* 		raspivid -op 100 -f -rot 180 -w 1280 -h 1024 -p 0  -t 14400000 -o video.h264 */
+
+		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 14400000 -o video.h264", 
+			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 14400000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 14400000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 
