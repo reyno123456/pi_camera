@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#define KEEP_VIDEO_NUM						24
+#define KEEP_VIDEO_NUM						(6*24*3)
 
 char *get_current_dir_name(void);
 
