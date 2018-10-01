@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#define KEEP_VIDEO_NUM						(6*24*3)
+#define KEEP_VIDEO_NUM						(6*24*2)
 
 char *get_current_dir_name(void);
 
@@ -161,9 +161,9 @@ int main(int argc, char** argv)
 
 /* 		raspivid -op 100 -f -rot 180 -w 1280 -h 1024 -p 0  -t 14400000 -o video.h264 */
 
-		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 600000 -o video.h264", 
-			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 600000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 1024 -t 600000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o video.h264", 
+			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 
