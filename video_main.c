@@ -152,7 +152,7 @@ int main(int argc, char** argv)
 	unsigned int i;
 
 /* 	1440 ±£Áô10Ììlog */
-	for (i = 0; i < 1440; i++){
+	for (i = 0; i < 14400; i++){
 		time(&tt);
 		t = localtime(&tt);
 		memset(filename, 0, sizeof(filename));
