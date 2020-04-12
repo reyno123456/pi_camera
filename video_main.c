@@ -138,7 +138,7 @@ void *video_convert_task(void)
 			system(commond_line);
 			// system("rm *.h264");
 		}
-		usleep(1000);
+		usleep(100000);
 	}
 }
 /* 86400000 一小时一个 */
