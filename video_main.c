@@ -5,11 +5,16 @@
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <pthread.h>
 
-#define KEEP_VIDEO_NUM						(6*24)
+#define KEEP_VIDEO_NUM						(6)
 // (6*24*2)
 
 char *get_current_dir_name(void);
+char filename[100] = {0};
+char filename_convert[100] = {0};
+char g_flag_convert = 0;
+char g_flag_name_geted = 0;
 
 int readFileList(char *basePath)
 {
@@ -87,7 +92,7 @@ unsigned int find_and_remove(void)
 	length = strlen(buf);
 	items = length / 26;
 
-	if (items > KEEP_VIDEO_NUM){
+	if (items > 1){
 		memcpy(command_rm, "rm ", 3);
 		memcpy(&command_rm[3], &buf[0], 25);
 /* 		printf("command_rm = %s\n", command_rm); */
@@ -99,6 +104,75 @@ unsigned int find_and_remove(void)
 	return items;
 }
 
+unsigned int find_and_remove_mp4(void)
+{
+	int fd;
+	int ret;
+	unsigned int items;
+	unsigned int length;
+	unsigned int i;
+	char name[25] = {0};
+	char command_rm[28] = {0};
+
+	char buf[1024*1024] = {0};
+	
+	system("find *.mp4 > find_mp4.txt");
+
+	fd = open("find_mp4.txt", O_RDWR);
+
+	ret = read(fd, buf, 1024*1024);
+
+
+	length = strlen(buf);
+	items = length / 25;
+
+	if (items > KEEP_VIDEO_NUM){
+		memcpy(command_rm, "rm ", 3);
+		memcpy(&command_rm[3], &buf[0], 24);
+/* 		printf("command_rm = %s\n", command_rm); */
+		system(command_rm);
+	}
+	
+	system("rm find_mp4.txt");
+
+	return items;
+}
+
+void *video_convert_task(void)
+{
+	int i;
+	int items;
+	char commond_line[100] = {0};
+	char convert_filename[100] = {0};
+	
+	while(1)
+	{
+		if (g_flag_convert == 1)
+		{
+			g_flag_convert = 0;
+			
+			memset(commond_line, 0, sizeof(commond_line));
+			memcpy(commond_line, "MP4Box -fps 30 -add ", strlen("MP4Box -fps 30 -add "));
+			memcpy(&commond_line[strlen("MP4Box -fps 30 -add ")], filename_convert, strlen(filename_convert));
+			memcpy(convert_filename, filename_convert, strlen(filename_convert));
+			memcpy(&convert_filename[strlen(convert_filename) - 4], "mp4", strlen("mp4"));
+			convert_filename[strlen(convert_filename) - 1] = 0;
+			memcpy(&commond_line[strlen(commond_line)], " ", 1);
+			memcpy(&commond_line[strlen(commond_line)], convert_filename, strlen(convert_filename));
+			printf("convert commond_line = %s\n", commond_line);
+			g_flag_name_geted = 0;
+			system(commond_line);
+			
+			do{
+				items = find_and_remove_mp4();
+				printf("items = %d\n", items);
+			}while (items > KEEP_VIDEO_NUM);
+			
+			system("rm *.h264");
+		}
+		usleep(1000);
+	}
+}
 /* 86400000 一小时一个 */
 /* 14400000 10分钟一个 */
 int main(int argc, char** argv)
@@ -145,7 +219,6 @@ int main(int argc, char** argv)
 	printf("dir = %s\n", dir);
 /* 	printf("%4d年%02d月%02d日 %02d:%02d:%02d\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec); */
 
-	char filename[100] = {0};
 	char commond_line[100] = {0};
 
 	sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -153,34 +226,46 @@ int main(int argc, char** argv)
 /* 	printf("filename = %s\n", filename); */
 
 	unsigned int i;
-
+/*
 	for (i = 0; i < KEEP_VIDEO_NUM; i++){
 		find_and_remove();
 	}
+*/	
+	pthread_t id1;
+	int ret = 0;
+	
+	ret = pthread_create(&id1, NULL, (void *)video_convert_task,NULL);
+	if (ret)
+	{
+		printf("video_convert_task create fail\n");
+	}
 
 /* 	1440 保留10天log */
-	for (i = 0; i < 6*24*10; i++){
+//	for (i = 0; i < 6*24*10; i++){
+	for (i = 0; i < 60; i++){
 		time(&tt);
 		t = localtime(&tt);
-		memset(filename, 0, sizeof(filename));
+		//memset(filename, 0, sizeof(filename));
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 /* 		printf("filename = %s\n", filename); */
 
 /* 		raspivid -op 100 -f -rot 180 -w 1280 -h 1024 -p 0  -t 14400000 -o video.h264 */
 
-		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o video.h264", 
-			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264", 
+			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
-
-		do{
-			items = find_and_remove();
-			printf("items = %d\n", items);
-			items = find_and_remove();
-			printf("items = %d\n", items);
-		}while (items > KEEP_VIDEO_NUM);
-/* 		sleep(10); */
+		memcpy(filename_convert, filename, sizeof(filename));
+		g_flag_convert = 1;
+		g_flag_name_geted = 1;
+/*		
+		while(g_flag_name_geted == 1)
+		{
+			usleep(100000);	
+		}
+*/
+		sleep(1);
 	}
 
 	return 0;

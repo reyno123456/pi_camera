@@ -13,4 +13,5 @@
 *.mif
 *.depend
 *.h264
+*.mp4
 output/
