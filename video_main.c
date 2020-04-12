@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 
-#define KEEP_VIDEO_NUM						(6)
+#define KEEP_VIDEO_NUM						(6*24*1)
 // (6*24*2)
 
 char *get_current_dir_name(void);
@@ -67,40 +67,6 @@ void test_read_file_list(void)
 /* 	strcpy(basePath,"./XL"); */
 	readFileList(basePath);
 	return;
-}
-
-unsigned int find_and_remove(void)
-{
-	int fd;
-	int ret;
-	unsigned int items;
-	unsigned int length;
-	unsigned int i;
-	char name[26] = {0};
-	char command_rm[29] = {0};
-
-	char buf[1024*1024] = {0};
-	
-	system("find *.h264 > find.txt");
-
-	fd = open("find.txt", O_RDWR);
-
-	ret = read(fd, buf, 1024*1024);
-
-
-	length = strlen(buf);
-	items = length / 26;
-
-	if (items > 1){
-		memcpy(command_rm, "rm ", 3);
-		memcpy(&command_rm[3], &buf[0], 25);
-/* 		printf("command_rm = %s\n", command_rm); */
-		system(command_rm);
-	}
-	
-	system("rm find.txt");
-
-	return items;
 }
 
 unsigned int find_and_remove_mp4(void)
@@ -206,15 +172,14 @@ int main(int argc, char** argv)
 	}
 
 /* 	1440 ±£¡Ù10ÃÏlog */
-//	for (i = 0; i < 6*24*10; i++){
-	for (i = 0; i < 60; i++){
+	for (i = 0; i < 6*24*10; i++){
 		time(&tt);
 		t = localtime(&tt);
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 
-		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264", 
-			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o video.h264", 
+			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 600000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 		memcpy(filename_convert, filename, sizeof(filename));
