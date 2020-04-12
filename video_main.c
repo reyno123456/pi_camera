@@ -6,7 +6,8 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#define KEEP_VIDEO_NUM						(6*24*2)
+#define KEEP_VIDEO_NUM						5
+// (6*24*2)
 
 char *get_current_dir_name(void);
 
@@ -76,9 +77,9 @@ unsigned int find_and_remove(void)
 
 	char buf[1024*1024] = {0};
 	
-	system("find *.h264 -> find.txt");
+	system("find *.h264 > find.txt");
 
-	fd = open("find.txt", O_RDONLY);
+	fd = open("find.txt", O_RDWR);
 
 	ret = read(fd, buf, 1024*1024);
 
@@ -92,6 +93,8 @@ unsigned int find_and_remove(void)
 /* 		printf("command_rm = %s\n", command_rm); */
 		system(command_rm);
 	}
+	
+	system("rm find.txt");
 
 	return items;
 }
@@ -151,8 +154,12 @@ int main(int argc, char** argv)
 
 	unsigned int i;
 
+	for (i = 0; i < 6; i++){
+		find_and_remove();
+	}
+
 /* 	1440 ±£Áô10Ììlog */
-	for (i = 0; i < 14400; i++){
+	for (i = 0; i < 1; i++){
 		time(&tt);
 		t = localtime(&tt);
 		memset(filename, 0, sizeof(filename));
@@ -161,9 +168,9 @@ int main(int argc, char** argv)
 
 /* 		raspivid -op 100 -f -rot 180 -w 1280 -h 1024 -p 0  -t 14400000 -o video.h264 */
 
-		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o video.h264", 
-			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o video.h264"));
-		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 800 -h 600 -t 600000 -o ")], filename, strlen(filename));
+		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1920 -h 1080 -t 600000 -o video.h264", 
+			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1920 -h 1080 -t 600000 -o video.h264"));
+		memcpy(&commond_line[strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1920 -h 1080 -t 600000 -o ")], filename, strlen(filename));
 		printf("commond_line = %s\n", commond_line);
 		system(commond_line);
 
