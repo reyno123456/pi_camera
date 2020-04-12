@@ -14,7 +14,6 @@ char *get_current_dir_name(void);
 char filename[100] = {0};
 char filename_convert[100] = {0};
 char g_flag_convert = 0;
-char g_flag_name_geted = 0;
 
 int readFileList(char *basePath)
 {
@@ -160,7 +159,6 @@ void *video_convert_task(void)
 			memcpy(&commond_line[strlen(commond_line)], " ", 1);
 			memcpy(&commond_line[strlen(commond_line)], convert_filename, strlen(convert_filename));
 			printf("convert commond_line = %s\n", commond_line);
-			g_flag_name_geted = 0;
 			system(commond_line);
 			
 			do{
@@ -177,34 +175,6 @@ void *video_convert_task(void)
 /* 14400000 10·ÖÖÓÒ»¸ö */
 int main(int argc, char** argv)
 {
-/*
-	time_t tNow =time(NULL);  
-	time_t tEnd = tNow + 1800;  
-
-	struct tm ptm = { 0 };  
-	struct tm ptmEnd = { 0 };  
-	localtime_r(&tNow, &ptm);  
-	localtime_r(&tEnd, &ptmEnd);  
-
-	char szTmp[50] = {0};  
-	strftime(szTmp,50,"%H:%M:%S",&ptm);  
-	char szEnd[50] = {0};  
-	strftime(szEnd,50,"%H:%M:%S",&ptmEnd);  
-	printf("%s \n",szTmp);  
-	printf("%s \n",szEnd);  
-
-
-	system("PAUSE");  
-*/
-
-/*	system("raspivid -w 320 -h 240 -p 0  -t 1000 -o video.h264"); */
-/*	sleep(2); */
-
-/*
-	test_read_file_list();
-	return 0;
-*/
-
 	unsigned int items;
 
 	struct tm *t;
@@ -223,14 +193,9 @@ int main(int argc, char** argv)
 
 	sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 
-/* 	printf("filename = %s\n", filename); */
 
 	unsigned int i;
-/*
-	for (i = 0; i < KEEP_VIDEO_NUM; i++){
-		find_and_remove();
-	}
-*/	
+
 	pthread_t id1;
 	int ret = 0;
 	
@@ -245,11 +210,7 @@ int main(int argc, char** argv)
 	for (i = 0; i < 60; i++){
 		time(&tt);
 		t = localtime(&tt);
-		//memset(filename, 0, sizeof(filename));
 		sprintf(filename, "%4d_%02d_%02d__%02d_%02d_%02d.h264", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
-/* 		printf("filename = %s\n", filename); */
-
-/* 		raspivid -op 100 -f -rot 180 -w 1280 -h 1024 -p 0  -t 14400000 -o video.h264 */
 
 		memcpy(commond_line, "raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264", 
 			   strlen("raspivid -p 1080,850,160,120 -rot 180 -w 1280 -h 720 -t 10000 -o video.h264"));
@@ -258,13 +219,6 @@ int main(int argc, char** argv)
 		system(commond_line);
 		memcpy(filename_convert, filename, sizeof(filename));
 		g_flag_convert = 1;
-		g_flag_name_geted = 1;
-/*		
-		while(g_flag_name_geted == 1)
-		{
-			usleep(100000);	
-		}
-*/
 		sleep(1);
 	}
 
