@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#define KEEP_VIDEO_NUM						5
+#define KEEP_VIDEO_NUM						(6*4)
 // (6*24*2)
 
 char *get_current_dir_name(void);
@@ -154,12 +154,12 @@ int main(int argc, char** argv)
 
 	unsigned int i;
 
-	for (i = 0; i < 6; i++){
+	for (i = 0; i < KEEP_VIDEO_NUM; i++){
 		find_and_remove();
 	}
 
 /* 	1440 ±£Áô10Ììlog */
-	for (i = 0; i < 1; i++){
+	for (i = 0; i < 6*24*10; i++){
 		time(&tt);
 		t = localtime(&tt);
 		memset(filename, 0, sizeof(filename));
