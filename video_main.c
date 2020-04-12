@@ -132,7 +132,11 @@ void *video_convert_task(void)
 				printf("items = %d\n", items);
 			}while (items > KEEP_VIDEO_NUM);
 			
-			system("rm *.h264");
+			memset(commond_line, 0, sizeof(commond_line));
+			memcpy(commond_line, "rm ", strlen("rm "));
+			memcpy(&commond_line[strlen(commond_line)], filename_convert, strlen(filename_convert));
+			system(commond_line);
+			// system("rm *.h264");
 		}
 		usleep(1000);
 	}
