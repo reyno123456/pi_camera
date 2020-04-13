@@ -8,13 +8,41 @@
 #include <pthread.h>
 #include <sys/statfs.h> 
 
-#define KEEP_VIDEO_NUM						(6*24*1)
-// (6*24*2)
-
 char *get_current_dir_name(void);
 char filename[100] = {0};
 char filename_convert[100] = {0};
 char g_flag_convert = 0;
+
+int get_disk_space_left(void) 
+{ 
+	struct statfs diskInfo;  
+    statfs("/", &diskInfo);  
+    unsigned long long totalBlocks = diskInfo.f_bsize;  
+    unsigned long long totalSize = totalBlocks * diskInfo.f_blocks;  
+    size_t mbTotalsize = totalSize>>20;  
+    unsigned long long freeDisk = diskInfo.f_bfree*totalBlocks;  
+    size_t mbFreedisk = freeDisk>>20;  
+    printf ("/  total=%dMB, free=%dMB\n", mbTotalsize, mbFreedisk); 
+
+	return mbFreedisk;
+/*
+    statfs("/boot", &diskInfo);  
+    totalBlocks = diskInfo.f_bsize;  
+    totalSize = totalBlocks * diskInfo.f_blocks;  
+    mbTotalsize = totalSize>>20;  
+    freeDisk = diskInfo.f_bfree*totalBlocks;  
+    mbFreedisk = freeDisk>>20;  
+    printf ("/boot  total=%dMB, free=%dMB\n", mbTotalsize, mbFreedisk);
+    statfs("/dev/shm", &diskInfo);
+    totalBlocks = diskInfo.f_bsize;
+    totalSize = totalBlocks * diskInfo.f_blocks;
+    mbTotalsize = totalSize>>20;
+    freeDisk = diskInfo.f_bfree*totalBlocks;
+    mbFreedisk = freeDisk>>20;
+    printf ("/dev/shm  total=%dMB, free=%dMB\n", mbTotalsize, mbFreedisk);
+	return 0;
+*/
+}
 
 int readFileList(char *basePath)
 {
@@ -92,13 +120,11 @@ unsigned int find_and_remove_mp4(void)
 	length = strlen(buf);
 	items = length / 25;
 
-	if (items > KEEP_VIDEO_NUM){
-		memcpy(command_rm, "rm ", 3);
-		memcpy(&command_rm[3], &buf[0], 24);
-/* 		printf("command_rm = %s\n", command_rm); */
-		system(command_rm);
-	}
+	memcpy(command_rm, "rm ", 3);
+	memcpy(&command_rm[3], &buf[0], 24);
+	system(command_rm);
 	
+	close(fd);
 	system("rm find_mp4.txt");
 
 	return items;
@@ -110,6 +136,16 @@ void *video_convert_task(void)
 	int items;
 	char commond_line[100] = {0};
 	char convert_filename[100] = {0};
+	
+	system("rm *.h264");
+	usleep(100000);
+	
+	while (get_disk_space_left() < 4000)
+	{
+		items = find_and_remove_mp4();
+		printf("items = %d\n", items);
+		usleep(100000);
+	}
 	
 	while(1)
 	{
@@ -128,10 +164,12 @@ void *video_convert_task(void)
 			printf("convert commond_line = %s\n", commond_line);
 			system(commond_line);
 			
-			do{
+			while (get_disk_space_left() < 4000)
+			{
 				items = find_and_remove_mp4();
 				printf("items = %d\n", items);
-			}while (items > KEEP_VIDEO_NUM);
+				usleep(100000);
+			}
 			
 			memset(commond_line, 0, sizeof(commond_line));
 			memcpy(commond_line, "rm ", strlen("rm "));
@@ -143,30 +181,10 @@ void *video_convert_task(void)
 	}
 }
 
-int get_disk_space_left(void) 
-{ 
-    struct statfs diskInfo; 
-      
-    statfs("~/shared/git/pi_camera", &diskInfo); 
-    unsigned long long blocksize = diskInfo.f_bsize; //每个block里包含的字节数 
-    unsigned long long totalsize = blocksize * diskInfo.f_blocks; //总的字节数，f_blocks为block的数目 
-    printf("Total_size = %llu B = %llu KB = %llu MB = %llu GB\n", 
-        totalsize, totalsize>>10, totalsize>>20, totalsize>>30); 
-      
-    unsigned long long freeDisk = diskInfo.f_bfree * blocksize; //剩余空间的大小 
-    unsigned long long availableDisk = diskInfo.f_bavail * blocksize; //可用空间大小 
-    printf("Disk_free = %llu MB = %llu GB\nDisk_available = %llu MB = %llu GB\n", 
-        freeDisk>>20, freeDisk>>30, availableDisk>>20, availableDisk>>30); 
-      
-    return 0; 
-}
 /* 86400000 一小时一个 */
 /* 14400000 10分钟一个 */
 int main(int argc, char** argv)
-{
-	get_disk_space_left();
-	return 0;
-	
+{	
 	unsigned int items;
 
 	struct tm *t;
